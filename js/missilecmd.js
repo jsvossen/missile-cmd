@@ -1,0 +1,9 @@
+(function($) {
+
+	$.missileCmd = function() {
+
+
+
+	}
+
+})(jQuery);
