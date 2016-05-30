@@ -2,13 +2,18 @@
 
 	$.missileCmd = function() {
 
+//====== CONSTANTS
+
 		var CANVAS_WIDTH = 500;
         var CANVAS_HEIGHT = 450;
         var GROUND = CANVAS_HEIGHT-30;
         var canvasElement = $("<canvas width='" + CANVAS_WIDTH + "' height='" + CANVAS_HEIGHT + "'></canvas>");
 		var canvas = canvasElement.get(0).getContext("2d");
 
+//====== INVENTORY
+
 		var userMissiles = [];
+		var enemyMissiles = [];
 		var bases = [
 			new Base(0),
 			new Base((CANVAS_WIDTH/2)-35),
@@ -17,10 +22,14 @@
 		var cities = [ new City(80), new City(129), new City(177),
 					  new City(295), new City(344), new City(392) ];
 
+//====== GROUND
+
 		function drawGround() {
 			canvas.fillStyle = 'yellow'; 
 			canvas.fillRect(0,GROUND,CANVAS_WIDTH,GROUND); 
 		}
+
+//====== CITIES		
 
 		function City(x) {
 			this.destroyed = false;
@@ -41,6 +50,8 @@
 			c.fill();
 		}
 
+//====== BASE/SILO
+
 		function Base(x) {
 			this.missiles = 10;
 			this.destroyed = false;
@@ -60,6 +71,8 @@
 			c.fillStyle = 'yellow';
 			c.fill();
 		}
+
+//====== MISSILES
 
 		function Missile(toX,toY) {
 			this.toX = toX;
@@ -99,6 +112,8 @@
 			return silo;
 		}
 
+//====== RENDER LOOP
+
 		function animLoop() {
 			requestAnimFrame(animLoop);
 			canvas.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -114,6 +129,7 @@
 			});
 		}
 
+//====== INIT GAME
 
         return {
         	init: function() {
