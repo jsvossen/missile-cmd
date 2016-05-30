@@ -122,7 +122,7 @@
         			var coordX = e.pageX - $(this).offset().left;
         			var coordY = e.pageY - $(this).offset().top;
         			var silo = getClosestSilo(coordX);
-        			if (silo) {
+        			if (silo && coordY < GROUND-60) {
         				var m = new Missile(coordX, coordY);
         				m.oX = silo.mid;
         				silo.missiles--;
