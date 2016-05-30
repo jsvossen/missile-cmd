@@ -45,6 +45,7 @@
 			this.missiles = 10;
 			this.destroyed = false;
 			this.x = x;
+			this.mid = this.x+35;
 		}
 
 		Base.prototype.height = 25;
@@ -83,6 +84,21 @@
 			c.closePath();
 		}
 
+		function getClosestSilo(x) {
+			var silo;
+			var minDist = 999;
+			$.each(bases,function(i){
+				if (this.missiles > 0) {
+					var dist = Math.abs(this.mid - x);
+					if (dist < minDist) {
+						silo = this;
+						minDist = dist;
+					}
+				}
+			});
+			return silo;
+		}
+
 		function animLoop() {
 			requestAnimFrame(animLoop);
 			canvas.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -103,8 +119,15 @@
         	init: function() {
         		canvasElement.appendTo('main');
         		$(canvasElement).click(function(e){
-        			var m = new Missile(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top);
-        			userMissiles.push(m);
+        			var coordX = e.pageX - $(this).offset().left;
+        			var coordY = e.pageY - $(this).offset().top;
+        			var silo = getClosestSilo(coordX);
+        			if (silo) {
+        				var m = new Missile(coordX, coordY);
+        				m.oX = silo.mid;
+        				silo.missiles--;
+        				userMissiles.push(m);
+        			}
         		});
         		requestAnimFrame(animLoop);
         	}
