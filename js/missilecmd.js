@@ -27,7 +27,7 @@
 		}
 
 		Base.prototype.height = 25;
-		Base.prototype.draw = function(x) {
+		Base.prototype.draw = function() {
 			var c = canvas;
 			c.beginPath();
 			c.moveTo(this.x,GROUND);
@@ -76,7 +76,6 @@
         return {
         	init: function() {
         		canvasElement.appendTo('main');
-
         		$(canvasElement).click(function(e){
         			var m = new Missile(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top);
         			userMissiles.push(m);
