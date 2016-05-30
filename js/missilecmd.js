@@ -72,6 +72,7 @@
 			var c = canvas;
 			this.amount += 0.05;
 			if (this.amount > 1) this.amount = 1;
+			c.beginPath();
 			c.moveTo(this.oX,this.oY);
 			dx = this.oX + (this.toX - this.oX) * this.amount;
 			dy = this.oY + (this.toY - this.oY) * this.amount;
@@ -79,6 +80,7 @@
 			c.strokeStyle = "dodgerblue";
 			c.lineWidth = 1;
 			c.stroke();
+			c.closePath();
 		}
 
 		function animLoop() {
