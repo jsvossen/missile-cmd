@@ -14,10 +14,31 @@
 			new Base((CANVAS_WIDTH/2)-35),
         	new Base(CANVAS_WIDTH-70)
 		];
+		var cities = [ new City(80), new City(129), new City(177),
+					  new City(295), new City(344), new City(392) ];
 
 		function drawGround() {
 			canvas.fillStyle = 'yellow'; 
 			canvas.fillRect(0,GROUND,CANVAS_WIDTH,GROUND); 
+		}
+
+		function City(x) {
+			this.destroyed = false;
+			this.x = x;
+		}
+
+		City.prototype.draw = function() {
+			var c = canvas;
+			var h = 10;
+			var w = 28;
+			c.fillStyle = 'aqua';
+			c.fillRect(this.x,GROUND-h,w,h);
+			c.beginPath();
+			c.moveTo(this.x+(w/2)-5,GROUND-h);
+			c.lineTo(this.x+(w/2), GROUND-h-5);
+			c.lineTo(this.x+(w/2)+5,GROUND-h);
+			c.closePath();
+			c.fill();
 		}
 
 		function Base(x) {
@@ -68,6 +89,9 @@
 				this.draw();
 			});
 			$.each(bases,function(i){
+				if (!this.destroyed) this.draw();
+			});
+			$.each(cities,function(i){
 				if (!this.destroyed) this.draw();
 			});
 		}
