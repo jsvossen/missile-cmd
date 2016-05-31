@@ -77,10 +77,12 @@
 //====== MISSILES
 
 		function Missile(toX,toY) {
-			this.toX = toX;
-			this.toY = toY;
-			this.oX = CANVAS_WIDTH/2;
-			this.oY = GROUND-Base.prototype.height;
+			this.toX = toX; //target X
+			this.toY = toY; //target Y
+			this.oX = CANVAS_WIDTH/2; //origin X
+			this.oY = GROUND-Base.prototype.height; //originY
+			this.dx = this.oX; //delta X
+			this.dy = this.oY; //delta Y
 			this.amount = 0;
 			this.status = 'active';
 			this.color = 'dodgerblue';
@@ -100,19 +102,19 @@
 			if (this.status == 'active') {
 				this.amount += this.speed;
 				if (this.amount > 1) this.amount = 1;
-				dx = this.oX + (this.toX - this.oX) * this.amount;
-				dy = this.oY + (this.toY - this.oY) * this.amount;
+				this.dx = this.oX + (this.toX - this.oX) * this.amount;
+				this.dy = this.oY + (this.toY - this.oY) * this.amount;
 				ctx.beginPath();
 				ctx.moveTo(this.oX,this.oY);
-				ctx.lineTo(dx,dy);
+				ctx.lineTo(this.dx,this.dy);
 				ctx.strokeStyle = this.color;
 				ctx.lineWidth = 1;
 				ctx.stroke();
 				ctx.closePath();
-				ctx.fillRect(dx-1,dy-1,2,2);
+				ctx.fillRect(this.dx-1,this.dy-1,2,2);
 				ctx.fillStyle = 'yellow';
 				ctx.fill();
-				if (dx == this.toX && dy == this.toY && this.amount == 1) { 
+				if (this.dx == this.toX && this.dy == this.toY && this.amount == 1) { 
 					this.status = 'exploding';
 					this.amount = 0;
 				}
@@ -138,6 +140,15 @@
 		Missile.prototype.explode = function() {
 			ctx.beginPath();
 			ctx.arc(this.toX,this.toY,this.amount,0,2*Math.PI);
+			$.each(enemyMissiles,function(i, m){
+				if (this.status == "active" && ctx.isPointInPath(this.dx,this.dy)) {
+					this.toX = this.dx;
+					this.toY = this.dy;
+					this.amount = 0;
+					this.status = 'exploding'
+					this.explode();
+				}
+			});
 			ctx.fillStyle = 'white';
 			ctx.fill();
 			ctx.closePath();
