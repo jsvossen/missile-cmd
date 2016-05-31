@@ -129,8 +129,13 @@
 				this.amount -= 0.75;
 				if (this.amount < 0) {
 					this.status = false;
-					i = userMissiles.indexOf(this);
-					userMissiles.splice(i,1);
+					if (this instanceof EnemyMissile) {
+						i = enemyMissiles.indexOf(this);
+						enemyMissiles.splice(i,1);
+					} else {
+						i = userMissiles.indexOf(this);
+						userMissiles.splice(i,1);
+					}
 				} else {
 					this.explode();
 				}
