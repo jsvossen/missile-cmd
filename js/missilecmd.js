@@ -80,20 +80,55 @@
 			this.oX = CANVAS_WIDTH/2;
 			this.oY = GROUND-Base.prototype.height;
 			this.amount = 0;
+			this.status = 'active';
 		}
 
 		Missile.prototype.draw = function() {
 			var c = canvas;
-			this.amount += 0.05;
-			if (this.amount > 1) this.amount = 1;
+			if (this.status == 'active') {
+				this.amount += 0.05;
+				if (this.amount > 1) this.amount = 1;
+				dx = this.oX + (this.toX - this.oX) * this.amount;
+				dy = this.oY + (this.toY - this.oY) * this.amount;
+				c.beginPath();
+				c.moveTo(this.oX,this.oY);
+				c.lineTo(dx,dy);
+				c.strokeStyle = "dodgerblue";
+				c.lineWidth = 1;
+				c.stroke();
+				c.closePath();
+				c.fillRect(dx-1,dy-1,2,2);
+				c.fillStyle = 'yellow';
+				c.fill();
+				if (dx == this.toX && dy == this.toY && this.amount == 1) { 
+					this.status = 'exploding';
+					this.amount = 0;
+				}
+			} else if (this.status == 'exploding') {
+				this.amount += 0.75;
+				if (this.amount >= 30) {
+					this.status = 'imploding';
+				} else {
+					this.explode();
+				}
+			} else {
+				this.amount -= 0.75;
+				if (this.amount < 0) {
+					this.status = false;
+					i = userMissiles.indexOf(this);
+					userMissiles.splice(i,1);
+				} else {
+					this.explode();
+				}
+			}
+		}
+
+		Missile.prototype.explode = function() {
+			var c = canvas;
 			c.beginPath();
-			c.moveTo(this.oX,this.oY);
-			dx = this.oX + (this.toX - this.oX) * this.amount;
-			dy = this.oY + (this.toY - this.oY) * this.amount;
-			c.lineTo(dx,dy);
-			c.strokeStyle = "dodgerblue";
-			c.lineWidth = 1;
-			c.stroke();
+			c.arc(this.toX,this.toY,this.amount,0,2*Math.PI);
+			c.fillStyle = 'white';
+			c.fill();
 			c.closePath();
 		}
 
@@ -117,9 +152,8 @@
 		function animLoop() {
 			requestAnimFrame(animLoop);
 			canvas.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-			drawGround();
 			$.each(userMissiles,function(i){
-				this.draw();
+				if (this.status) this.draw();
 			});
 			$.each(bases,function(i){
 				if (!this.destroyed) this.draw();
@@ -127,9 +161,10 @@
 			$.each(cities,function(i){
 				if (!this.destroyed) this.draw();
 			});
+			drawGround();
 		}
 
-//====== INIT GAME
+//====== INIT GAME / EVENT LISTENERS
 
         return {
         	init: function() {
