@@ -34,19 +34,20 @@
 		function City(x) {
 			this.destroyed = false;
 			this.x = x;
+			this.mid = this.x+16;
 		}
 
 		City.prototype.draw = function() {
 			var h = 10;
 			var w = 28;
+			ctx.beginPath();
 			ctx.fillStyle = 'aqua';
 			ctx.fillRect(this.x,GROUND-h,w,h);
-			ctx.beginPath();
 			ctx.moveTo(this.x+(w/2)-5,GROUND-h);
 			ctx.lineTo(this.x+(w/2), GROUND-h-5);
 			ctx.lineTo(this.x+(w/2)+5,GROUND-h);
-			ctx.closePath();
 			ctx.fill();
+			ctx.closePath();
 		}
 
 //====== BASE/SILO
@@ -68,42 +69,46 @@
 			ctx.fillStyle = 'yellow';
 			ctx.fill();
 			ctx.closePath();
+			ctx.beginPath();
 			ctx.fillStyle = 'blue';
 			ctx.font = "12px sans-serif";
 			var txtW = ctx.measureText(this.missiles).width;
 			ctx.fillText(this.missiles,this.mid-(txtW/2),GROUND-5);
+			ctx.closePath();
 		}
 
 //====== MISSILES
 
-		function Missile(toX,toY) {
+		function Missile(toX,toY,oX) {
 			this.toX = toX; //target X
 			this.toY = toY; //target Y
-			this.oX = CANVAS_WIDTH/2; //origin X
+			this.oX = oX; //origin X
 			this.oY = GROUND-Base.prototype.height; //originY
-			this.dx = this.oX; //delta X
+			this.dx = oX; //delta X
 			this.dy = this.oY; //delta Y
 			this.amount = 0;
 			this.status = 'active';
 			this.color = 'dodgerblue';
-			this.speed = 0.05;
+			this.dist = Math.sqrt(Math.pow(this.toX-this.oX,2)+Math.pow(this.toY-this.oY,2));
+			this.speedX = (this.toX-this.oX)/(this.dist/10);
+			this.speedY = (this.toY-this.oY)/(this.dist/10);
 		}
 
-		function EnemyMissile(toX) {
-			 Missile.call(this,toX,GROUND);
-			 this.oY = 0;
-			 this.color = 'red';
-			 this.speed = 0.001;
+		function EnemyMissile(toX,oX,oY) {
+			Missile.call(this,toX,GROUND,oX);
+			this.oY = oY;
+			this.dy = oY;
+			this.color = 'red';
+			this.speedX = (this.toX-this.oX)/(this.dist+480);
+			this.speedY = (this.toY-this.oY)/(this.dist+480);
 		}
 		EnemyMissile.prototype = Object.create(Missile.prototype);
 		EnemyMissile.prototype.constructor = Missile;
 
 		Missile.prototype.draw = function() {
 			if (this.status == 'active') {
-				this.amount += this.speed;
-				if (this.amount > 1) this.amount = 1;
-				this.dx = this.oX + (this.toX - this.oX) * this.amount;
-				this.dy = this.oY + (this.toY - this.oY) * this.amount;
+				this.dx += this.speedX;
+				this.dy += this.speedY;
 				ctx.beginPath();
 				ctx.moveTo(this.oX,this.oY);
 				ctx.lineTo(this.dx,this.dy);
@@ -111,12 +116,21 @@
 				ctx.lineWidth = 1;
 				ctx.stroke();
 				ctx.closePath();
-				ctx.fillRect(this.dx-1,this.dy-1,2,2);
+				ctx.beginPath();
 				ctx.fillStyle = 'yellow';
+				ctx.fillRect(this.dx-1,this.dy-1,2,2);
 				ctx.fill();
-				if (this.dx == this.toX && this.dy == this.toY && this.amount == 1) { 
-					this.status = 'exploding';
-					this.amount = 0;
+				ctx.closePath();
+				if (this instanceof EnemyMissile) {
+					if (this.dy >= this.toY) { 
+						this.status = 'exploding';
+						this.amount = 0;
+					}
+				} else {
+					if (this.dy <= this.toY) { 
+						this.status = 'exploding';
+						this.amount = 0;
+					}
 				}
 			} else if (this.status == 'exploding') {
 				this.amount += 0.75;
@@ -145,8 +159,11 @@
 		Missile.prototype.explode = function() {
 			ctx.beginPath();
 			ctx.arc(this.toX,this.toY,this.amount,0,2*Math.PI);
+			ctx.fillStyle = 'white';
+			ctx.fill();
+			ctx.closePath();
 			$.each(enemyMissiles,function(i, m){
-				if (this.status == "active" && ctx.isPointInPath(this.dx,this.dy)) {
+				if (this.status == 'active' && ctx.isPointInPath(this.dx,this.dy)) {
 					this.toX = this.dx;
 					this.toY = this.dy;
 					this.amount = 0;
@@ -154,9 +171,6 @@
 					this.explode();
 				}
 			});
-			ctx.fillStyle = 'white';
-			ctx.fill();
-			ctx.closePath();
 		}
 
 		function getClosestSilo(x) {
@@ -176,13 +190,20 @@
 
 		function spawnMissiles() {
 			for (i=0;i<8;i++) {
-				var x = Math.floor((Math.random() * CANVAS_WIDTH));
-				var y = Math.floor((Math.random() * 50))*-1;
-				var toX = Math.floor((Math.random() * CANVAS_WIDTH));
-				var m = new EnemyMissile(toX);
-				m.oX = x;
-				m.oY = y;
+				var toX = randomTarget().mid;
+				var oX = Math.floor((Math.random() * CANVAS_WIDTH));
+				var m = new EnemyMissile(toX,oX,0);
 				enemyMissiles.push(m);
+				console.log(m.speedX,m.speedY);
+			}
+		}
+		function randomTarget() {
+			var targets = $.merge( cities, bases );
+			var i = Math.floor((Math.random() * targets.length));
+			if (targets[i].destroyed) {
+				pickRandomTarget();
+			} else {
+				return targets[i];
 			}
 		}
 
@@ -191,17 +212,17 @@
 		function animLoop() {
 			requestAnimFrame(animLoop);
 			ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-			$.each(enemyMissiles,function(i){
-				if (this.status) this.draw();
-			});
 			$.each(userMissiles,function(i){
 				if (this.status) this.draw();
+			});
+			$.each(cities,function(i){
+				if (!this.destroyed) this.draw();
 			});
 			$.each(bases,function(i){
 				if (!this.destroyed) this.draw();
 			});
-			$.each(cities,function(i){
-				if (!this.destroyed) this.draw();
+			$.each(enemyMissiles,function(i){
+				if (this.status) this.draw();
 			});
 			drawGround();
 		}
@@ -216,10 +237,10 @@
         			var coordY = e.pageY - $(this).offset().top;
         			var silo = getClosestSilo(coordX);
         			if (silo && coordY < GROUND-60) {
-        				var m = new Missile(coordX, coordY);
-        				m.oX = silo.mid;
+        				var m = new Missile(coordX, coordY,silo.mid);
         				silo.missiles--;
         				userMissiles.push(m);
+        				console.log(m);
         			}
         		});
         		spawnMissiles();
