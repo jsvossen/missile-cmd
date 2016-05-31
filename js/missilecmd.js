@@ -67,9 +67,13 @@
 			c.lineTo(this.x+20,GROUND-this.height);
 			c.lineTo(this.x+50,GROUND-this.height);
 			c.lineTo(this.x+70,GROUND);
-			c.closePath();
 			c.fillStyle = 'yellow';
 			c.fill();
+			c.closePath();
+			c.fillStyle = 'blue';
+			c.font = "12px sans-serif";
+			var txtW = c.measureText(this.missiles).width;
+			c.fillText(this.missiles,this.mid-(txtW/2),GROUND-5);
 		}
 
 //====== MISSILES
