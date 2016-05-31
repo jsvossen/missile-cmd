@@ -8,7 +8,7 @@
         var CANVAS_HEIGHT = 450;
         var GROUND = CANVAS_HEIGHT-30;
         var canvasElement = $("<canvas width='" + CANVAS_WIDTH + "' height='" + CANVAS_HEIGHT + "'></canvas>");
-		var canvas = canvasElement.get(0).getContext("2d");
+		var ctx = canvasElement.get(0).getContext("2d");
 
 //====== INVENTORY
 
@@ -25,8 +25,8 @@
 //====== GROUND
 
 		function drawGround() {
-			canvas.fillStyle = 'yellow'; 
-			canvas.fillRect(0,GROUND,CANVAS_WIDTH,GROUND); 
+			ctx.fillStyle = 'yellow'; 
+			ctx.fillRect(0,GROUND,CANVAS_WIDTH,GROUND); 
 		}
 
 //====== CITIES		
@@ -37,17 +37,16 @@
 		}
 
 		City.prototype.draw = function() {
-			var c = canvas;
 			var h = 10;
 			var w = 28;
-			c.fillStyle = 'aqua';
-			c.fillRect(this.x,GROUND-h,w,h);
-			c.beginPath();
-			c.moveTo(this.x+(w/2)-5,GROUND-h);
-			c.lineTo(this.x+(w/2), GROUND-h-5);
-			c.lineTo(this.x+(w/2)+5,GROUND-h);
-			c.closePath();
-			c.fill();
+			ctx.fillStyle = 'aqua';
+			ctx.fillRect(this.x,GROUND-h,w,h);
+			ctx.beginPath();
+			ctx.moveTo(this.x+(w/2)-5,GROUND-h);
+			ctx.lineTo(this.x+(w/2), GROUND-h-5);
+			ctx.lineTo(this.x+(w/2)+5,GROUND-h);
+			ctx.closePath();
+			ctx.fill();
 		}
 
 //====== BASE/SILO
@@ -61,19 +60,18 @@
 
 		Base.prototype.height = 25;
 		Base.prototype.draw = function() {
-			var c = canvas;
-			c.beginPath();
-			c.moveTo(this.x,GROUND);
-			c.lineTo(this.x+20,GROUND-this.height);
-			c.lineTo(this.x+50,GROUND-this.height);
-			c.lineTo(this.x+70,GROUND);
-			c.fillStyle = 'yellow';
-			c.fill();
-			c.closePath();
-			c.fillStyle = 'blue';
-			c.font = "12px sans-serif";
-			var txtW = c.measureText(this.missiles).width;
-			c.fillText(this.missiles,this.mid-(txtW/2),GROUND-5);
+			ctx.beginPath();
+			ctx.moveTo(this.x,GROUND);
+			ctx.lineTo(this.x+20,GROUND-this.height);
+			ctx.lineTo(this.x+50,GROUND-this.height);
+			ctx.lineTo(this.x+70,GROUND);
+			ctx.fillStyle = 'yellow';
+			ctx.fill();
+			ctx.closePath();
+			ctx.fillStyle = 'blue';
+			ctx.font = "12px sans-serif";
+			var txtW = ctx.measureText(this.missiles).width;
+			ctx.fillText(this.missiles,this.mid-(txtW/2),GROUND-5);
 		}
 
 //====== MISSILES
@@ -88,22 +86,21 @@
 		}
 
 		Missile.prototype.draw = function() {
-			var c = canvas;
 			if (this.status == 'active') {
 				this.amount += 0.05;
 				if (this.amount > 1) this.amount = 1;
 				dx = this.oX + (this.toX - this.oX) * this.amount;
 				dy = this.oY + (this.toY - this.oY) * this.amount;
-				c.beginPath();
-				c.moveTo(this.oX,this.oY);
-				c.lineTo(dx,dy);
-				c.strokeStyle = "dodgerblue";
-				c.lineWidth = 1;
-				c.stroke();
-				c.closePath();
-				c.fillRect(dx-1,dy-1,2,2);
-				c.fillStyle = 'yellow';
-				c.fill();
+				ctx.beginPath();
+				ctx.moveTo(this.oX,this.oY);
+				ctx.lineTo(dx,dy);
+				ctx.strokeStyle = "dodgerblue";
+				ctx.lineWidth = 1;
+				ctx.stroke();
+				ctx.closePath();
+				ctx.fillRect(dx-1,dy-1,2,2);
+				ctx.fillStyle = 'yellow';
+				ctx.fill();
 				if (dx == this.toX && dy == this.toY && this.amount == 1) { 
 					this.status = 'exploding';
 					this.amount = 0;
@@ -128,12 +125,11 @@
 		}
 
 		Missile.prototype.explode = function() {
-			var c = canvas;
-			c.beginPath();
-			c.arc(this.toX,this.toY,this.amount,0,2*Math.PI);
-			c.fillStyle = 'white';
-			c.fill();
-			c.closePath();
+			ctx.beginPath();
+			ctx.arc(this.toX,this.toY,this.amount,0,2*Math.PI);
+			ctx.fillStyle = 'white';
+			ctx.fill();
+			ctx.closePath();
 		}
 
 		function getClosestSilo(x) {
@@ -155,7 +151,7 @@
 
 		function animLoop() {
 			requestAnimFrame(animLoop);
-			canvas.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+			ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 			$.each(userMissiles,function(i){
 				if (this.status) this.draw();
 			});
