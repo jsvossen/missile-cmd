@@ -83,18 +83,29 @@
 			this.oY = GROUND-Base.prototype.height;
 			this.amount = 0;
 			this.status = 'active';
+			this.color = 'dodgerblue';
+			this.speed = 0.05;
 		}
+
+		function EnemyMissile(toX) {
+			 Missile.call(this,toX,GROUND);
+			 this.oY = 0;
+			 this.color = 'red';
+			 this.speed = 0.001;
+		}
+		EnemyMissile.prototype = Object.create(Missile.prototype);
+		EnemyMissile.prototype.constructor = Missile;
 
 		Missile.prototype.draw = function() {
 			if (this.status == 'active') {
-				this.amount += 0.05;
+				this.amount += this.speed;
 				if (this.amount > 1) this.amount = 1;
 				dx = this.oX + (this.toX - this.oX) * this.amount;
 				dy = this.oY + (this.toY - this.oY) * this.amount;
 				ctx.beginPath();
 				ctx.moveTo(this.oX,this.oY);
 				ctx.lineTo(dx,dy);
-				ctx.strokeStyle = "dodgerblue";
+				ctx.strokeStyle = this.color;
 				ctx.lineWidth = 1;
 				ctx.stroke();
 				ctx.closePath();
@@ -147,11 +158,26 @@
 			return silo;
 		}
 
+		function spawnMissiles() {
+			for (i=0;i<8;i++) {
+				var x = Math.floor((Math.random() * CANVAS_WIDTH));
+				var y = Math.floor((Math.random() * 50))*-1;
+				var toX = Math.floor((Math.random() * CANVAS_WIDTH));
+				var m = new EnemyMissile(toX);
+				m.oX = x;
+				m.oY = y;
+				enemyMissiles.push(m);
+			}
+		}
+
 //====== RENDER LOOP
 
 		function animLoop() {
 			requestAnimFrame(animLoop);
 			ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+			$.each(enemyMissiles,function(i){
+				if (this.status) this.draw();
+			});
 			$.each(userMissiles,function(i){
 				if (this.status) this.draw();
 			});
@@ -180,6 +206,7 @@
         				userMissiles.push(m);
         			}
         		});
+        		spawnMissiles();
         		requestAnimFrame(animLoop);
         	}
         }
