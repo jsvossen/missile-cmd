@@ -206,7 +206,7 @@
 			var targets = $.merge( cities, bases );
 			var i = Math.floor((Math.random() * targets.length));
 			if (targets[i].destroyed) {
-				pickRandomTarget();
+				randomTarget();
 			} else {
 				return targets[i];
 			}
