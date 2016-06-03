@@ -7,8 +7,8 @@
 		var CANVAS_WIDTH = 500;
         var CANVAS_HEIGHT = 450;
         var GROUND = CANVAS_HEIGHT-30;
-        var canvasElement = $("<canvas width='" + CANVAS_WIDTH + "' height='" + CANVAS_HEIGHT + "'></canvas>");
-		var ctx = canvasElement.get(0).getContext("2d");
+        var canvasElement = $('<canvas width="' + CANVAS_WIDTH + '" height="' + CANVAS_HEIGHT + '"></canvas>');
+		var ctx = canvasElement.get(0).getContext('2d');
 
 //====== INVENTORY
 
@@ -70,8 +70,9 @@
 			ctx.fill();
 			ctx.closePath();
 			ctx.beginPath();
+			// show missile count
 			ctx.fillStyle = 'blue';
-			ctx.font = "12px sans-serif";
+			ctx.font = '12px sans-serif';
 			var txtW = ctx.measureText(this.missiles).width;
 			ctx.fillText(this.missiles,this.mid-(txtW/2),GROUND-5);
 			ctx.closePath();
@@ -86,7 +87,7 @@
 			this.oY = GROUND-Base.prototype.height; //originY
 			this.dx = oX; //delta X
 			this.dy = this.oY; //delta Y
-			this.amount = 0;
+			this.radius = 0; // explosion radius
 			this.status = 'active';
 			this.color = 'dodgerblue';
 			this.dist = Math.sqrt(Math.pow(this.toX-this.oX,2)+Math.pow(this.toY-this.oY,2));
@@ -94,11 +95,12 @@
 			this.speedY = (this.toY-this.oY)/(this.dist/10);
 		}
 
-		function EnemyMissile(toX,oX,oY) {
-			Missile.call(this,toX,GROUND,oX);
+		function EnemyMissile(target,oX) {
+			this.target = target;
+			Missile.call(this,target.mid,GROUND,oX);
 			this.delay = 0;
-			this.oY = oY;
-			this.dy = oY;
+			this.oY = 0;
+			this.dy = 0;
 			this.color = 'red';
 			this.speedX = (this.toX-this.oX)/(this.dist+480);
 			this.speedY = (this.toY-this.oY)/(this.dist+480);
@@ -107,12 +109,15 @@
 		EnemyMissile.prototype.constructor = Missile;
 
 		Missile.prototype.draw = function() {
+			// stagger enemy missile launch
 			if (this instanceof EnemyMissile) {
 				if (this.delay > 0 )  { this.delay -= 0.04; return false; }
 			}
+			// increment missile trajectory 
 			if (this.status == 'active') {
 				this.dx += this.speedX;
 				this.dy += this.speedY;
+				// missile trail
 				ctx.beginPath();
 				ctx.moveTo(this.oX,this.oY);
 				ctx.lineTo(this.dx,this.dy);
@@ -120,33 +125,36 @@
 				ctx.lineWidth = 1;
 				ctx.stroke();
 				ctx.closePath();
+				// missile head
 				ctx.beginPath();
 				ctx.fillStyle = 'yellow';
 				ctx.fillRect(this.dx-1,this.dy-1,2,2);
 				ctx.fill();
 				ctx.closePath();
+				// explode if target reached
 				if (this instanceof EnemyMissile) {
 					if (this.dy >= this.toY) { 
 						this.status = 'exploding';
-						this.amount = 0;
 						this.target.destroyed = true;
 					}
 				} else {
 					if (this.dy <= this.toY) { 
 						this.status = 'exploding';
-						this.amount = 0;
 					}
 				}
+			// increase explosion radius if exploding
 			} else if (this.status == 'exploding') {
-				this.amount += 0.75;
-				if (this.amount >= 30) {
+				this.radius += 0.75;
+				if (this.radius >= 30) {
 					this.status = 'imploding';
 				} else {
 					this.explode();
 				}
+			// decrease explosion radius if imploding
 			} else {
-				this.amount -= 0.75;
-				if (this.amount < 0) {
+				this.radius -= 0.75;
+				if (this.radius < 0) {
+					// unset missile if it's done exploding
 					this.status = false;
 					if (this instanceof EnemyMissile) {
 						i = enemyMissiles.indexOf(this);
@@ -162,22 +170,26 @@
 		}
 
 		Missile.prototype.explode = function() {
+			// draw explosion
 			ctx.beginPath();
-			ctx.arc(this.toX,this.toY,this.amount,0,2*Math.PI);
+			ctx.arc(this.toX,this.toY,this.radius,0,2*Math.PI);
 			ctx.fillStyle = 'white';
 			ctx.fill();
 			ctx.closePath();
+			// explode intersecting missiles
 			$.each(enemyMissiles,function(i, m){
 				if (this.status == 'active' && ctx.isPointInPath(this.dx,this.dy)) {
 					this.toX = this.dx;
 					this.toY = this.dy;
-					this.amount = 0;
 					this.status = 'exploding'
 					this.explode();
 				}
 			});
 		}
 
+//====== MISSILE HELPERS
+
+		// return nearest usable base
 		function getClosestSilo(x) {
 			var silo;
 			var minDist = 999;
@@ -193,18 +205,17 @@
 			return silo;
 		}
 
+		// create random enemy missiles
 		function spawnMissiles() {
 			for (i=0;i<8;i++) {
-				var target = randomTarget();
-				var toX = target.mid;
 				var oX = Math.floor((Math.random() * CANVAS_WIDTH));
-				var m = new EnemyMissile(toX,oX,0);
+				var m = new EnemyMissile(randomTarget(),oX);
 				m.delay = Math.floor((Math.random() * 5));
-				m.target = target;
 				enemyMissiles.push(m);
-				console.log(m.speedX,m.speedY);
 			}
 		}
+
+		// return random city or base
 		function randomTarget() {
 			var targets = $.merge( cities, bases );
 			var i = Math.floor((Math.random() * targets.length));
@@ -244,11 +255,10 @@
         			var coordX = e.pageX - $(this).offset().left;
         			var coordY = e.pageY - $(this).offset().top;
         			var silo = getClosestSilo(coordX);
-        			if (silo && coordY < GROUND-60) {
+        			if (silo && coordY < GROUND-55) {
         				var m = new Missile(coordX, coordY,silo.mid);
         				silo.missiles--;
         				userMissiles.push(m);
-        				console.log(m);
         			}
         		});
         		spawnMissiles();
