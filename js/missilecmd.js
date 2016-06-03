@@ -96,6 +96,7 @@
 
 		function EnemyMissile(toX,oX,oY) {
 			Missile.call(this,toX,GROUND,oX);
+			this.delay = 0;
 			this.oY = oY;
 			this.dy = oY;
 			this.color = 'red';
@@ -106,6 +107,9 @@
 		EnemyMissile.prototype.constructor = Missile;
 
 		Missile.prototype.draw = function() {
+			if (this instanceof EnemyMissile) {
+				if (this.delay > 0 )  { this.delay -= 0.04; return false; }
+			}
 			if (this.status == 'active') {
 				this.dx += this.speedX;
 				this.dy += this.speedY;
@@ -193,6 +197,7 @@
 				var toX = randomTarget().mid;
 				var oX = Math.floor((Math.random() * CANVAS_WIDTH));
 				var m = new EnemyMissile(toX,oX,0);
+				m.delay = Math.floor((Math.random() * 5));
 				enemyMissiles.push(m);
 				console.log(m.speedX,m.speedY);
 			}
