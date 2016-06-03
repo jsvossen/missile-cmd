@@ -129,6 +129,7 @@
 					if (this.dy >= this.toY) { 
 						this.status = 'exploding';
 						this.amount = 0;
+						this.target.destroyed = true;
 					}
 				} else {
 					if (this.dy <= this.toY) { 
@@ -181,7 +182,7 @@
 			var silo;
 			var minDist = 999;
 			$.each(bases,function(i){
-				if (this.missiles > 0) {
+				if (this.missiles > 0 && !this.destroyed) {
 					var dist = Math.abs(this.mid - x);
 					if (dist < minDist) {
 						silo = this;
@@ -194,10 +195,12 @@
 
 		function spawnMissiles() {
 			for (i=0;i<8;i++) {
-				var toX = randomTarget().mid;
+				var target = randomTarget();
+				var toX = target.mid;
 				var oX = Math.floor((Math.random() * CANVAS_WIDTH));
 				var m = new EnemyMissile(toX,oX,0);
 				m.delay = Math.floor((Math.random() * 5));
+				m.target = target;
 				enemyMissiles.push(m);
 				console.log(m.speedX,m.speedY);
 			}
