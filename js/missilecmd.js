@@ -120,8 +120,8 @@
 			this.oY = 0;
 			this.dy = 0;
 			this.color = 'red';
-			this.speedX = (this.toX-this.oX)/(this.dist+480);
-			this.speedY = (this.toY-this.oY)/(this.dist+480);
+			this.speedX = (this.toX-this.oX)/(this.dist+level.speedShift());
+			this.speedY = (this.toY-this.oY)/(this.dist+level.speedShift());
 		}
 		EnemyMissile.prototype = Object.create(Missile.prototype);
 		EnemyMissile.prototype.constructor = Missile;
@@ -226,7 +226,8 @@
 
 		// create random enemy missiles
 		function spawnMissiles() {
-			for (i=0;i<8;i++) {
+			level.enemyInc();
+			for (i=0;i<level.numEnemy;i++) {
 				var oX = Math.floor((Math.random() * CANVAS_WIDTH));
 				var target = randomTarget();
 				// bug fix--not sure why targets are somtimes undefined?
@@ -257,6 +258,7 @@
 			score: 0,
 			inProgress: false,
 			gameOver: false,
+			numEnemy: 8,
 			beginNext: function() {
 				if (this.lvl > 0) this.score += this.calcBonus().missiles + this.calcBonus().cities;
 				this.lvl++;
@@ -325,6 +327,14 @@
 					ctx.fillStyle = 'aqua';
 					ctx.fillText(prompt,(CANVAS_WIDTH-txtW)/2,promptY);
 				}
+			},
+			speedShift: function() {
+				var shift = 500-(level.lvl*30);
+				if (shift < 0) shift = 0;
+				return shift;
+			},
+			enemyInc: function() {
+				if (this.lvl%2 == 0) this.numEnemy++;
 			}
 		}
 
