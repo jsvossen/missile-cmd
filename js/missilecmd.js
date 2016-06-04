@@ -287,36 +287,44 @@
 				return bonus;
 			},
 			drawInfoScreen: function() {
-				if (this.lvl > 0) {
-					ctx.fillStyle = 'royalblue';
-					ctx.font = 'bold 20px sans-serif';
-					ctx.fillText('Bonus Points:',100,100);
-
-					var mLeft = 'Missiles Left: '+ missileCount();
-					var mBonus = this.calcBonus().missiles;
+				if (this.gameOver) {
+					ctx.font = '24px sans-serif';
+					var txt = "GAME OVER";
+					var txtW = ctx.measureText(txt).width;
 					ctx.fillStyle = 'red';
-					ctx.font = 'bold 18px sans-serif';
-					ctx.fillText(mBonus,100,150);
-					ctx.font = '18px sans-serif';
-					ctx.fillStyle = 'royalblue';
-					ctx.fillText(mLeft,160,150);
+					ctx.fillText(txt,(CANVAS_WIDTH-txtW)/2,200);
+				} else {
+					if (this.lvl > 0) {
+						ctx.fillStyle = 'royalblue';
+						ctx.font = 'bold 20px sans-serif';
+						ctx.fillText('Bonus Points:',100,100);
 
-					var cLeft = 'Cities Left: '+ cityCount();
-					var cBonus = this.calcBonus().cities;
-					ctx.fillStyle = 'red';
-					ctx.font = 'bold 18px sans-serif';
-					ctx.fillText(cBonus,100,200);
+						var mLeft = 'Missiles Left: '+ missileCount();
+						var mBonus = this.calcBonus().missiles;
+						ctx.fillStyle = 'red';
+						ctx.font = 'bold 18px sans-serif';
+						ctx.fillText(mBonus,100,150);
+						ctx.font = '18px sans-serif';
+						ctx.fillStyle = 'royalblue';
+						ctx.fillText(mLeft,160,150);
+
+						var cLeft = 'Cities Left: '+ cityCount();
+						var cBonus = this.calcBonus().cities;
+						ctx.fillStyle = 'red';
+						ctx.font = 'bold 18px sans-serif';
+						ctx.fillText(cBonus,100,200);
+						ctx.font = '18px sans-serif';
+						ctx.fillStyle = 'royalblue';
+						ctx.fillText(cLeft,160,200);
+					}
+
 					ctx.font = '18px sans-serif';
-					ctx.fillStyle = 'royalblue';
-					ctx.fillText(cLeft,160,200);
+					var prompt = "Click to begin Level " + (this.lvl+1);
+					var promptY = (this.lvl > 0) ? 300 : 200;
+					var txtW = ctx.measureText(prompt).width;
+					ctx.fillStyle = 'aqua';
+					ctx.fillText(prompt,(CANVAS_WIDTH-txtW)/2,promptY);
 				}
-
-				ctx.font = '18px sans-serif';
-				var prompt = "Click to begin Level " + (this.lvl+1);
-				var promptY = (this.lvl > 0) ? 300 : 200;
-				var txtW = ctx.measureText(prompt).width;
-				ctx.fillStyle = 'aqua';
-				ctx.fillText(prompt,(CANVAS_WIDTH-txtW)/2,promptY);
 			}
 		}
 
@@ -344,6 +352,7 @@
 			level.drawScore();
 			if (enemyMissiles.length == 0) {
 				level.inProgress = false;
+				if ( cityCount() == 0) level.gameOver = true;
 				level.drawInfoScreen();
 			}
 		}
@@ -360,7 +369,7 @@
 	        			var coordX = e.pageX - $(this).offset().left;
 	        			var coordY = e.pageY - $(this).offset().top;
 	        			var silo = getClosestSilo(coordX);
-	        			if (silo && coordY < GROUND-55) {
+	        			if (silo && coordY < GROUND-55 && !level.gameOver) {
 	        				var m = new Missile(coordX, coordY,silo.mid);
 	        				silo.missiles--;
 	        				userMissiles.push(m);
