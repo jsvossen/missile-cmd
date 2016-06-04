@@ -50,6 +50,15 @@
 			ctx.closePath();
 		}
 
+		// return remaining cities
+		function cityCount() {
+			var count = 0
+			$.each(cities,function(i){
+				if (!this.destroyed) count++;
+			});
+			return count;
+		}
+
 //====== BASE/SILO
 
 		function Base(x) {
@@ -76,6 +85,15 @@
 			var txtW = ctx.measureText(this.missiles).width;
 			ctx.fillText(this.missiles,this.mid-(txtW/2),GROUND-5);
 			ctx.closePath();
+		}
+
+		// return remaining missiles
+		function missileCount() {
+			var count = 0
+			$.each(bases,function(i){
+				if (!this.destroyed) count += this.missiles;
+			});
+			return count;
 		}
 
 //====== MISSILES
@@ -212,7 +230,7 @@
 				var oX = Math.floor((Math.random() * CANVAS_WIDTH));
 				var target = randomTarget();
 				// bug fix--not sure why targets are somtimes undefined?
-				while (typeof target == "undefined") {
+				while (target === undefined) {
 					target = randomTarget();
 				}
 				var m = new EnemyMissile(target,oX);
@@ -238,8 +256,9 @@
 			lvl: 0,
 			score: 0,
 			inProgress: false,
+			gameOver: false,
 			beginNext: function() {
-				if (this.lvl > 0) this.score += this.calcBonus()[0]+this.calcBonus()[1];
+				if (this.lvl > 0) this.score += this.calcBonus().missiles + this.calcBonus().cities;
 				this.lvl++;
 				this.inProgress = true;
 				$.each(bases,function(i){
@@ -261,13 +280,10 @@
 				ctx.closePath();
 			},
 			calcBonus: function() {
-				bonus = [0,0];
-				$.each(bases,function(i){
-					if (!this.destroyed) bonus[0] += this.missiles*10;
-				});
-				$.each(cities,function(i){
-					if (!this.destroyed) bonus[1] += 100;
-				});
+				var bonus = {
+					missiles: missileCount()*10,
+					cities: cityCount()*100
+				}
 				return bonus;
 			},
 			drawInfoScreen: function() {
@@ -276,8 +292,8 @@
 					ctx.font = 'bold 20px sans-serif';
 					ctx.fillText('Bonus Points:',100,100);
 
-					var mLeft = 'Missiles Left: '+this.calcBonus()[0]/10;
-					var mBonus = this.calcBonus()[0];
+					var mLeft = 'Missiles Left: '+ missileCount();
+					var mBonus = this.calcBonus().missiles;
 					ctx.fillStyle = 'red';
 					ctx.font = 'bold 18px sans-serif';
 					ctx.fillText(mBonus,100,150);
@@ -285,8 +301,8 @@
 					ctx.fillStyle = 'royalblue';
 					ctx.fillText(mLeft,160,150);
 
-					var cLeft = 'Cities Left: '+this.calcBonus()[1]/100;
-					var cBonus = this.calcBonus()[1];
+					var cLeft = 'Cities Left: '+ cityCount();
+					var cBonus = this.calcBonus().cities;
 					ctx.fillStyle = 'red';
 					ctx.font = 'bold 18px sans-serif';
 					ctx.fillText(cBonus,100,200);
@@ -338,7 +354,7 @@
         	init: function() {
         		canvasElement.appendTo('main');
         		$(canvasElement).click(function(e){
-        			if (!level.inProgress) {
+        			if (!level.inProgress && !level.gameOver) {
         				level.beginNext();
         			} else {
 	        			var coordX = e.pageX - $(this).offset().left;
