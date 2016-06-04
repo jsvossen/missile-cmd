@@ -211,6 +211,10 @@
 			for (i=0;i<8;i++) {
 				var oX = Math.floor((Math.random() * CANVAS_WIDTH));
 				var target = randomTarget();
+				// bug fix--not sure why targets are somtimes undefined?
+				while (typeof target == "undefined") {
+					target = randomTarget();
+				}
 				var m = new EnemyMissile(target,oX);
 				m.delay = Math.floor((Math.random() * 5));
 				enemyMissiles.push(m);
