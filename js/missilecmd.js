@@ -226,6 +226,24 @@
 			}
 		}
 
+//====== LEVEL MANAGER
+
+		var level = {
+			lvl: 0,
+			score: 0,
+			inProgress: false,
+			setupNext: function() {
+				this.lvl++;
+				this.inProgress = false;
+				$.each(bases,function(i){
+					this.destroyed = false;
+					this.missiles = 10;
+				});
+				spawnMissiles();
+			}
+		}
+
+
 //====== RENDER LOOP
 
 		function animLoop() {
@@ -240,10 +258,13 @@
 			$.each(bases,function(i){
 				if (!this.destroyed) this.draw();
 			});
-			$.each(enemyMissiles,function(i){
-				if (this.status) this.draw();
-			});
+			if (level.inProgress) {
+				$.each(enemyMissiles,function(i){
+					if (this.status) this.draw();
+				});
+			}
 			drawGround();
+			if (enemyMissiles.length == 0) level.setupNext();
 		}
 
 //====== INIT GAME / EVENT LISTENERS
@@ -252,16 +273,19 @@
         	init: function() {
         		canvasElement.appendTo('main');
         		$(canvasElement).click(function(e){
-        			var coordX = e.pageX - $(this).offset().left;
-        			var coordY = e.pageY - $(this).offset().top;
-        			var silo = getClosestSilo(coordX);
-        			if (silo && coordY < GROUND-55) {
-        				var m = new Missile(coordX, coordY,silo.mid);
-        				silo.missiles--;
-        				userMissiles.push(m);
+        			if (!level.inProgress) {
+        				level.inProgress = true;
+        			} else {
+	        			var coordX = e.pageX - $(this).offset().left;
+	        			var coordY = e.pageY - $(this).offset().top;
+	        			var silo = getClosestSilo(coordX);
+	        			if (silo && coordY < GROUND-55) {
+	        				var m = new Missile(coordX, coordY,silo.mid);
+	        				silo.missiles--;
+	        				userMissiles.push(m);
+	        			}
         			}
         		});
-        		spawnMissiles();
         		requestAnimFrame(animLoop);
         	}
         }
