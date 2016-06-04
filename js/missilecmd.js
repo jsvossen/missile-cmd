@@ -259,6 +259,7 @@
 			inProgress: false,
 			gameOver: false,
 			numEnemy: 8,
+			// setup and start next level
 			beginNext: function() {
 				if (this.lvl > 0) this.score += this.calcBonus().missiles + this.calcBonus().cities;
 				this.lvl++;
@@ -269,6 +270,7 @@
 				});
 				spawnMissiles();
 			},
+			// write player score
 			drawScore: function() {
 				ctx.beginPath();
 				ctx.fillStyle = 'black';
@@ -281,6 +283,7 @@
 				ctx.fillText('Score: '+this.score,10,20);
 				ctx.closePath();
 			},
+			// calculate bonus points
 			calcBonus: function() {
 				var bonus = {
 					missiles: missileCount()*10,
@@ -288,8 +291,10 @@
 				}
 				return bonus;
 			},
+			// render inter-level message
 			drawInfoScreen: function() {
 				if (this.gameOver) {
+					// write game over message
 					ctx.font = '24px sans-serif';
 					var txt = "GAME OVER";
 					var txtW = ctx.measureText(txt).width;
@@ -297,6 +302,7 @@
 					ctx.fillText(txt,(CANVAS_WIDTH-txtW)/2,200);
 				} else {
 					if (this.lvl > 0) {
+						//write bonus points
 						ctx.fillStyle = 'royalblue';
 						ctx.font = 'bold 20px sans-serif';
 						ctx.fillText('Bonus Points:',100,100);
@@ -319,7 +325,7 @@
 						ctx.fillStyle = 'royalblue';
 						ctx.fillText(cLeft,160,200);
 					}
-
+					// write next level prompt
 					ctx.font = '18px sans-serif';
 					var prompt = "Click to begin Level " + (this.lvl+1);
 					var promptY = (this.lvl > 0) ? 300 : 200;
@@ -328,11 +334,13 @@
 					ctx.fillText(prompt,(CANVAS_WIDTH-txtW)/2,promptY);
 				}
 			},
+			// increase enemy missile speed based on level
 			speedShift: function() {
-				var shift = 500-(level.lvl*30);
+				var shift = 630-(level.lvl*30);
 				if (shift < 0) shift = 0;
 				return shift;
 			},
+			// increase # of enemy missiles based on level
 			enemyInc: function() {
 				if (this.lvl%2 == 0) this.numEnemy++;
 			}
@@ -360,9 +368,10 @@
 			}
 			drawGround();
 			level.drawScore();
+			// end level when enemy missiles are gone
 			if (enemyMissiles.length == 0) {
 				level.inProgress = false;
-				if ( cityCount() == 0) level.gameOver = true;
+				if (cityCount() == 0) level.gameOver = true;
 				level.drawInfoScreen();
 			}
 		}
@@ -379,7 +388,8 @@
 	        			var coordX = e.pageX - $(this).offset().left;
 	        			var coordY = e.pageY - $(this).offset().top;
 	        			var silo = getClosestSilo(coordX);
-	        			if (silo && coordY < GROUND-55 && !level.gameOver) {
+	        			if (silo && coordY < GROUND-40 && !level.gameOver) {
+	        				// launch user missile on click
 	        				var m = new Missile(coordX, coordY,silo.mid);
 	        				silo.missiles--;
 	        				userMissiles.push(m);
