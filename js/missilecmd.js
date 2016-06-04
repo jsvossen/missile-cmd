@@ -210,7 +210,8 @@
 		function spawnMissiles() {
 			for (i=0;i<8;i++) {
 				var oX = Math.floor((Math.random() * CANVAS_WIDTH));
-				var m = new EnemyMissile(randomTarget(),oX);
+				var target = randomTarget();
+				var m = new EnemyMissile(target,oX);
 				m.delay = Math.floor((Math.random() * 5));
 				enemyMissiles.push(m);
 			}
@@ -256,15 +257,46 @@
 				ctx.closePath();
 			},
 			calcBonus: function() {
-				bonus = [0,0]
+				bonus = [0,0];
 				$.each(bases,function(i){
 					if (!this.destroyed) bonus[0] += this.missiles*10;
 				});
-				console.log(cities);
 				$.each(cities,function(i){
 					if (!this.destroyed) bonus[1] += 100;
 				});
 				return bonus;
+			},
+			drawInfoScreen: function() {
+				if (this.lvl > 0) {
+					ctx.fillStyle = 'royalblue';
+					ctx.font = 'bold 20px sans-serif';
+					ctx.fillText('Bonus Points:',100,100);
+
+					var mLeft = 'Missiles Left: '+this.calcBonus()[0]/10;
+					var mBonus = this.calcBonus()[0];
+					ctx.fillStyle = 'red';
+					ctx.font = 'bold 18px sans-serif';
+					ctx.fillText(mBonus,100,150);
+					ctx.font = '18px sans-serif';
+					ctx.fillStyle = 'royalblue';
+					ctx.fillText(mLeft,160,150);
+
+					var cLeft = 'Cities Left: '+this.calcBonus()[1]/100;
+					var cBonus = this.calcBonus()[1];
+					ctx.fillStyle = 'red';
+					ctx.font = 'bold 18px sans-serif';
+					ctx.fillText(cBonus,100,200);
+					ctx.font = '18px sans-serif';
+					ctx.fillStyle = 'royalblue';
+					ctx.fillText(cLeft,160,200);
+				}
+
+				ctx.font = '18px sans-serif';
+				var prompt = "Click to begin Level " + (this.lvl+1);
+				var promptY = (this.lvl > 0) ? 300 : 200;
+				var txtW = ctx.measureText(prompt).width;
+				ctx.fillStyle = 'aqua';
+				ctx.fillText(prompt,(CANVAS_WIDTH-txtW)/2,promptY);
 			}
 		}
 
@@ -290,7 +322,10 @@
 			}
 			drawGround();
 			level.drawScore();
-			if (enemyMissiles.length == 0) level.inProgress = false;
+			if (enemyMissiles.length == 0) {
+				level.inProgress = false;
+				level.drawInfoScreen();
+			}
 		}
 
 //====== INIT GAME / EVENT LISTENERS
@@ -312,7 +347,6 @@
 	        			}
         			}
         		});
-        		console.log(cities);
         		requestAnimFrame(animLoop);
         	}
         }
