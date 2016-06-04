@@ -179,6 +179,7 @@
 			// explode intersecting missiles
 			$.each(enemyMissiles,function(i, m){
 				if (this.status == 'active' && ctx.isPointInPath(this.dx,this.dy)) {
+					level.score += 25;
 					this.toX = this.dx;
 					this.toY = this.dy;
 					this.status = 'exploding'
@@ -240,6 +241,18 @@
 					this.missiles = 10;
 				});
 				spawnMissiles();
+			},
+			drawScore: function() {
+				ctx.beginPath();
+				ctx.fillStyle = 'black';
+				ctx.fillRect(0,0,CANVAS_WIDTH,25);
+				ctx.fill();
+				ctx.closePath();
+				ctx.beginPath();
+				ctx.fillStyle = 'red';
+				ctx.font = 'bold 16px sans-serif';
+				ctx.fillText('Score: '+this.score,10,20);
+				ctx.closePath();
 			}
 		}
 
@@ -264,6 +277,7 @@
 				});
 			}
 			drawGround();
+			level.drawScore();
 			if (enemyMissiles.length == 0) level.setupNext();
 		}
 
