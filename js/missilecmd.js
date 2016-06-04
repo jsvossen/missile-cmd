@@ -218,7 +218,7 @@
 
 		// return random city or base
 		function randomTarget() {
-			var targets = $.merge( cities, bases );
+			var targets = cities.concat(bases);
 			var i = Math.floor((Math.random() * targets.length));
 			if (targets[i].destroyed) {
 				randomTarget();
@@ -233,9 +233,10 @@
 			lvl: 0,
 			score: 0,
 			inProgress: false,
-			setupNext: function() {
+			beginNext: function() {
+				if (this.lvl > 0) this.score += this.calcBonus()[0]+this.calcBonus()[1];
 				this.lvl++;
-				this.inProgress = false;
+				this.inProgress = true;
 				$.each(bases,function(i){
 					this.destroyed = false;
 					this.missiles = 10;
@@ -253,6 +254,17 @@
 				ctx.font = 'bold 16px sans-serif';
 				ctx.fillText('Score: '+this.score,10,20);
 				ctx.closePath();
+			},
+			calcBonus: function() {
+				bonus = [0,0]
+				$.each(bases,function(i){
+					if (!this.destroyed) bonus[0] += this.missiles*10;
+				});
+				console.log(cities);
+				$.each(cities,function(i){
+					if (!this.destroyed) bonus[1] += 100;
+				});
+				return bonus;
 			}
 		}
 
@@ -278,7 +290,7 @@
 			}
 			drawGround();
 			level.drawScore();
-			if (enemyMissiles.length == 0) level.setupNext();
+			if (enemyMissiles.length == 0) level.inProgress = false;
 		}
 
 //====== INIT GAME / EVENT LISTENERS
@@ -288,7 +300,7 @@
         		canvasElement.appendTo('main');
         		$(canvasElement).click(function(e){
         			if (!level.inProgress) {
-        				level.inProgress = true;
+        				level.beginNext();
         			} else {
 	        			var coordX = e.pageX - $(this).offset().left;
 	        			var coordY = e.pageY - $(this).offset().top;
@@ -300,6 +312,7 @@
 	        			}
         			}
         		});
+        		console.log(cities);
         		requestAnimFrame(animLoop);
         	}
         }
